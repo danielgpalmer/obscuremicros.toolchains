@@ -4,14 +4,20 @@ set -x
 set -e
 set -u
 
-if [ "$#" -eq "1" -a "$1" -ne "m68k-elf"]; then
-	TARGET="$1"
-	TARGETOPTS=""
-	BINUTILSPOINT="22"
-else
+if [ "$#" -ne "1" ]; then
+	echo "./mkchain <target>";
+	exit 1;
+fi;
+
+
+if [ "$1" = "m68k-elf" ]; then
 	TARGET="m68k-elf";
 	TARGETOPTS="--with-arch=m68k"
 	BINUTILSPOINT="21"
+else
+	TARGET="$1"
+	TARGETOPTS=""
+	BINUTILSPOINT="22"
 fi
 
 NEWLIBPOINT="20"
