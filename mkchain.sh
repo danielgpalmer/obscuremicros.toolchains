@@ -4,7 +4,7 @@ set -x
 set -e
 set -u
 
-if [ "$#" -eq "1" ]; then
+if [ "$#" -eq "1" -a "$1" -ne "m68k-elf"]; then
 	TARGET="$1"
 	TARGETOPTS=""
 	BINUTILSPOINT="22"
