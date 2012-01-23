@@ -31,12 +31,12 @@ GDBURL="http://ftp.gnu.org/gnu/gdb/gdb-7.3.1.tar.gz"
 BINUTILSTAR="${TARDIR}/binutils-2.${BINUTILSPOINT}.tar.gz"
 GCCTAR="${TARDIR}/gcc-core-4.6.2.tar.gz"
 NEWLIBTAR="${TARDIR}/newlib-1.${NEWLIBPOINT}.0.tar.gz"
-GDBTAR="${TARDIR}/gdb-7.3a.tar.gz";
+GDBTAR="${TARDIR}/gdb-7.3.1.tar.gz";
 
 BINUTILSSRC="${SRCDIR}/binutils-2.${BINUTILSPOINT}"
 GCCSRC="${SRCDIR}/gcc-4.6.2"
 NEWLIBSRC="${SRCDIR}/newlib-1.${NEWLIBPOINT}.0";
-GDBSRC="${SRCDIR}/gdb-7.3";
+GDBSRC="${SRCDIR}/gdb-7.3.1";
 
 
 BINUTILSBUILD="${BUILDDIR}/${TARGET}-binutils"
