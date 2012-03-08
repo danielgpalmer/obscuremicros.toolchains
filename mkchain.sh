@@ -42,6 +42,7 @@ NEWLIBTAR="${TARDIR}/newlib-1.${NEWLIBPOINT}.0.tar.gz"
 GDBTAR="${TARDIR}/gdb-${GDBVERSION}.tar.gz";
 
 GCCTARHASH="6903be0610808454ef42985c214ad834"
+NEWLIBTARHASH="e5488f545c46287d360e68a801d470e8"
 
 BINUTILSSRC="${SRCDIR}/binutils-2.${BINUTILSPOINT}"
 GCCSRC="${SRCDIR}/gcc-${GCCVERSION}"
@@ -153,7 +154,7 @@ make -k install
 set -e;
 
 echo "*** BUILDING INITIAL NEWLIB ***";
-stageprep $NEWLIBTAR $NEWLIBURL $NEWLIBSRC $NEWLIBBUILD ""
+stageprep $NEWLIBTAR $NEWLIBURL $NEWLIBSRC $NEWLIBBUILD ${NEWLIBTARHASH}
 cd ${NEWLIBBUILD}
 # This might fail.. we shouldn't care.. 
 ${NEWLIBSRC}/configure --target="${TARGET}" --prefix="${PREFIX}" --disable-newlib-supplied-syscalls
@@ -171,7 +172,7 @@ make -j "${NCPUS}"
 make install
 
 echo "*** BUILDING FINAL NEWLIB ***"
-stageprep $NEWLIBTAR $NEWLIBURL $NEWLIBSRC $NEWLIBBUILD ""
+stageprep $NEWLIBTAR $NEWLIBURL $NEWLIBSRC $NEWLIBBUILD ${NEWLIBTARHASH}
 cd ${NEWLIBBUILD}
 ${NEWLIBSRC}/configure --target="${TARGET}" --prefix="${PREFIX}" --disable-newlib-supplied-syscalls
 make -j "${NCPUS}";
