@@ -40,6 +40,8 @@ GCCTAR="${TARDIR}/gcc-core-${GCCVERSION}.tar.gz"
 NEWLIBTAR="${TARDIR}/newlib-1.${NEWLIBPOINT}.0.tar.gz"
 GDBTAR="${TARDIR}/gdb-7.3.1.tar.gz";
 
+GCCTARHASH="6903be0610808454ef42985c214ad834"
+
 BINUTILSSRC="${SRCDIR}/binutils-2.${BINUTILSPOINT}"
 GCCSRC="${SRCDIR}/gcc-${GCCVERSION}"
 NEWLIBSRC="${SRCDIR}/newlib-1.${NEWLIBPOINT}.0";
@@ -85,6 +87,15 @@ function stageprep {
 	URL=$2;
 	SRC=$3;
 	BUILD=$4;
+	HASH=$5;
+
+	if [ ! -e ${TAR} -a "$HASH" != "" ]; then
+		CURRENTHASH=`md5sum ${TAR} | cut -d " " -f 1`
+		if [ "${CURRENTHASH}" != "${HASH}" ]; then
+			echo "Hash of current tar.gz doesn't match what is expected, deleting";
+			rm ${TAR};
+		fi;
+	fi
 
 	if [ ! -e ${TAR} ]; then 
        		wget -O ${TAR} ${URL};
