@@ -160,7 +160,7 @@ cd ${NEWLIBBUILD}
 # This might fail.. we shouldn't care.. 
 ${NEWLIBSRC}/configure --target="${TARGET}" --prefix="${PREFIX}" --disable-newlib-supplied-syscalls
 set +e;
-make -k -j "${NCPUS}";
+make -k
 make -k install
 set -e;
 
@@ -176,14 +176,14 @@ echo "*** BUILDING FINAL NEWLIB ***"
 stageprep $NEWLIBTAR $NEWLIBURL $NEWLIBSRC $NEWLIBBUILD ${NEWLIBTARHASH}
 cd ${NEWLIBBUILD}
 ${NEWLIBSRC}/configure --target="${TARGET}" --prefix="${PREFIX}" --disable-newlib-supplied-syscalls
-make -j "${NCPUS}";
+make
 make install
 
 echo "*** BUILDING GDB***"
 stageprep $GDBTAR $GDBURL $GDBSRC $GDBBUILD ${GDBTARHASH}
 cd ${GDBBUILD}
 ${GDBSRC}/configure --target="${TARGET}" --prefix="${PREFIX}"
-make
+make -j "${NCPUS}"
 make install
 
 cd $ROOTDIR
