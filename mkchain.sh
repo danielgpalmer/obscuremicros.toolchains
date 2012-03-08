@@ -22,6 +22,7 @@ fi
 
 NEWLIBPOINT="20"
 GCCVERSION="4.6.3"
+GDBVERSION="7.4"
 
 ROOTDIR=`pwd`
 SRCDIR="${ROOTDIR}/src"
@@ -33,19 +34,19 @@ INSTDIR="${ROOTDIR}/inst"
 BINUTILSURL="ftp://aeneas.mit.edu/pub/gnu/binutils/binutils-2.${BINUTILSPOINT}.tar.gz"
 GCCURL="http://ftp.gnu.org/gnu/gcc/gcc-${GCCVERSION}/gcc-core-${GCCVERSION}.tar.gz"
 NEWLIBURL="ftp://sources.redhat.com/pub/newlib/newlib-1.${NEWLIBPOINT}.0.tar.gz"
-GDBURL="http://ftp.gnu.org/gnu/gdb/gdb-7.3.1.tar.gz"
+GDBURL="http://ftp.gnu.org/gnu/gdb/gdb-${GDBVERSION}.tar.gz"
 
 BINUTILSTAR="${TARDIR}/binutils-2.${BINUTILSPOINT}.tar.gz"
 GCCTAR="${TARDIR}/gcc-core-${GCCVERSION}.tar.gz"
 NEWLIBTAR="${TARDIR}/newlib-1.${NEWLIBPOINT}.0.tar.gz"
-GDBTAR="${TARDIR}/gdb-7.3.1.tar.gz";
+GDBTAR="${TARDIR}/gdb-${GDBVERSION}.tar.gz";
 
 GCCTARHASH="6903be0610808454ef42985c214ad834"
 
 BINUTILSSRC="${SRCDIR}/binutils-2.${BINUTILSPOINT}"
 GCCSRC="${SRCDIR}/gcc-${GCCVERSION}"
 NEWLIBSRC="${SRCDIR}/newlib-1.${NEWLIBPOINT}.0";
-GDBSRC="${SRCDIR}/gdb-7.3.1";
+GDBSRC="${SRCDIR}/gdb-${GDBVERSION}";
 
 
 BINUTILSBUILD="${BUILDDIR}/${TARGET}-binutils"
