@@ -31,7 +31,7 @@ INSTDIR="${ROOTDIR}/inst"
 
 #BINUTILSURL="http://ftp.gnu.org/gnu/binutils/binutils-2.${BINUTILSPOINT}.tar.gz"
 BINUTILSURL="ftp://aeneas.mit.edu/pub/gnu/binutils/binutils-2.${BINUTILSPOINT}.tar.gz"
-GCCURL="http://ftp.gnu.org/gnu/gcc/gcc-4.6.2/gcc-core-${GCCVERSION}.tar.gz"
+GCCURL="http://ftp.gnu.org/gnu/gcc/gcc-${GCCVERSION}/gcc-core-${GCCVERSION}.tar.gz"
 NEWLIBURL="ftp://sources.redhat.com/pub/newlib/newlib-1.${NEWLIBPOINT}.0.tar.gz"
 GDBURL="http://ftp.gnu.org/gnu/gdb/gdb-7.3.1.tar.gz"
 
