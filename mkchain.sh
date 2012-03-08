@@ -57,13 +57,13 @@ GDBBUILD="${BUILDDIR}/${TARGET}-gdb"
 
 PREFIX="${INSTDIR}/${TARGET}";
 
-NCPUS="3"
-#if [ -x /usr/bin/distcc ]; then
-#	NCPUS=`distcc -j`
-#	if [ "${NCPUS}" -gt "0" ]; then
-#		NCPUS="3"
-#	fi
-#fi
+NCPUS="2"
+if [ -x /usr/bin/distcc ]; then
+	DISTCCOUTPUT=`distcc -j 2> /dev/null`
+	if [ "${DISTCCOUTPUT}" != "" ]; then
+		NCPUS=$DISTCCOUTPUT;
+	fi
+fi
 
 INSTBIN="${PREFIX}/bin"
 
