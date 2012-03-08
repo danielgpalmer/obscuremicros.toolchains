@@ -68,7 +68,9 @@ INSTBIN="${PREFIX}/bin"
 mkdir -p ${INSTBIN}
 
 PATH="${INSTBIN}:${PATH}"
-TOOLCHAINTAR="${ROOTDIR}/toolchain-${TARGET}.tar.gz"
+OS=`uname -s`
+ARCH=`uname -m`
+TOOLCHAINTAR="${ROOTDIR}/toolchain-${TARGET}-${OS}_${ARCH}.tar.gz"
 
 if [ -e $TOOLCHAINTAR ]; then
 	TOOLCHAINSTAMP=`stat -c %Z ${TOOLCHAINTAR}`
@@ -89,7 +91,7 @@ function stageprep {
 	BUILD=$4;
 	HASH=$5;
 
-	if [ ! -e ${TAR} -a "$HASH" != "" ]; then
+	if [ -e ${TAR} -a "$HASH" != "" ]; then
 		CURRENTHASH=`md5sum ${TAR} | cut -d " " -f 1`
 		if [ "${CURRENTHASH}" != "${HASH}" ]; then
 			echo "Hash of current tar.gz doesn't match what is expected, deleting";
@@ -132,7 +134,7 @@ done
 GCCCONFOPTS="--target=${TARGET} --enable-languages=c --with-gnu-as --with-gnu-ld --enable-languages=c --disable-libssp --prefix=${PREFIX} --disable-shared --with-newlib=yes ${TARGETOPTS}"
 
 echo "*** BUILDING BINUTILS ***";
-stageprep ${BINUTILSTAR} ${BINUTILSURL} ${BINUTILSSRC} ${BINUTILSBUILD}
+stageprep ${BINUTILSTAR} ${BINUTILSURL} ${BINUTILSSRC} ${BINUTILSBUILD} ""
 cd ${BINUTILSBUILD}
 ${BINUTILSSRC}/configure --target="${TARGET}" --prefix="${PREFIX}"
 make -j "${NCPUS}"
@@ -140,7 +142,7 @@ make install
 
 
 echo "*** BUILDING INITIAL GCC***"
-stageprep ${GCCTAR} ${GCCURL} ${GCCSRC} ${GCCBUILD}
+stageprep ${GCCTAR} ${GCCURL} ${GCCSRC} ${GCCBUILD} ${GCCTARHASH}
 cd ${GCCBUILD}
 # This might fail.. we shouldn't care.. it should give us enough of a compiler to compile newlib
 ${GCCSRC}/configure ${GCCCONFOPTS}
@@ -150,7 +152,7 @@ make -k install
 set -e;
 
 echo "*** BUILDING INITIAL NEWLIB ***";
-stageprep $NEWLIBTAR $NEWLIBURL $NEWLIBSRC $NEWLIBBUILD
+stageprep $NEWLIBTAR $NEWLIBURL $NEWLIBSRC $NEWLIBBUILD ""
 cd ${NEWLIBBUILD}
 # This might fail.. we shouldn't care.. 
 ${NEWLIBSRC}/configure --target="${TARGET}" --prefix="${PREFIX}" --disable-newlib-supplied-syscalls
@@ -161,21 +163,21 @@ set -e;
 
 
 echo "*** BUILDING FINAL GCC***"
-stageprep ${GCCTAR} ${GCCURL} ${GCCSRC} ${GCCBUILD}
+stageprep ${GCCTAR} ${GCCURL} ${GCCSRC} ${GCCBUILD} ${GCCTARHASH}
 cd ${GCCBUILD}
 ${GCCSRC}/configure ${GCCCONFOPTS}
 make -j "${NCPUS}"
 make install
 
 echo "*** BUILDING FINAL NEWLIB ***"
-stageprep $NEWLIBTAR $NEWLIBURL $NEWLIBSRC $NEWLIBBUILD
+stageprep $NEWLIBTAR $NEWLIBURL $NEWLIBSRC $NEWLIBBUILD ""
 cd ${NEWLIBBUILD}
 ${NEWLIBSRC}/configure --target="${TARGET}" --prefix="${PREFIX}" --disable-newlib-supplied-syscalls
 make -j "${NCPUS}";
 make install
 
 echo "*** BUILDING GDB***"
-stageprep $GDBTAR $GDBURL $GDBSRC $GDBBUILD
+stageprep $GDBTAR $GDBURL $GDBSRC $GDBBUILD  ""
 cd ${GDBBUILD}
 ${GDBSRC}/configure --target="${TARGET}" --prefix="${PREFIX}"
 make
