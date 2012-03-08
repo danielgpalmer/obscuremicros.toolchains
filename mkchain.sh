@@ -21,7 +21,7 @@ else
 fi
 
 NEWLIBPOINT="20"
-GCCVER="4.6.3"
+GCCVERSION="4.6.3"
 
 ROOTDIR=`pwd`
 SRCDIR="${ROOTDIR}/src"
