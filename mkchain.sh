@@ -4,25 +4,27 @@ set -x
 set -e
 set -u
 
+# check args
 if [ "$#" -ne "1" ]; then
 	echo "./mkchain <target>";
 	exit 1;
 fi;
 
-
+# setup the versions of the tools we want
 if [ "$1" = "m68k-elf" ]; then
 	TARGET="m68k-elf";
 	TARGETOPTS="--with-arch=m68k"
-	BINUTILSPOINT="21"
+	BINUTILSVERSION="2.21"
 else
 	TARGET="$1"
 	TARGETOPTS=""
-	BINUTILSPOINT="22"
+	BINUTILSVERSION="2.22"
 fi
 
-NEWLIBPOINT="20"
-GCCVERSION="4.6.3"
+NEWLIBVERSION="1.20.0"
+GCCVERSION="4.7.0"
 GDBVERSION="7.4"
+#
 
 ROOTDIR=`pwd`
 SRCDIR="${ROOTDIR}/src"
@@ -30,27 +32,32 @@ TARDIR="${ROOTDIR}/tarballs"
 BUILDDIR="${ROOTDIR}/build"
 INSTDIR="${ROOTDIR}/inst"
 
-#BINUTILSURL="http://ftp.gnu.org/gnu/binutils/binutils-2.${BINUTILSPOINT}.tar.gz"
-BINUTILSURL="ftp://aeneas.mit.edu/pub/gnu/binutils/binutils-2.${BINUTILSPOINT}.tar.gz"
-GCCURL="http://ftp.gnu.org/gnu/gcc/gcc-${GCCVERSION}/gcc-core-${GCCVERSION}.tar.gz"
-NEWLIBURL="ftp://sources.redhat.com/pub/newlib/newlib-1.${NEWLIBPOINT}.0.tar.gz"
+# download urls
+#BINUTILSURL="http://ftp.gnu.org/gnu/binutils/binutils-${BINUTILSVERSION}.tar.gz"
+BINUTILSURL="ftp://aeneas.mit.edu/pub/gnu/binutils/binutils-${BINUTILSVERSION}.tar.gz"
+GCCURL="http://ftp.gnu.org/gnu/gcc/gcc-${GCCVERSION}/gcc-${GCCVERSION}.tar.gz"
+NEWLIBURL="ftp://sources.redhat.com/pub/newlib/newlib-${NEWLIBVERSION}.tar.gz"
 GDBURL="http://ftp.gnu.org/gnu/gdb/gdb-${GDBVERSION}.tar.gz"
 
-BINUTILSTAR="${TARDIR}/binutils-2.${BINUTILSPOINT}.tar.gz"
-GCCTAR="${TARDIR}/gcc-core-${GCCVERSION}.tar.gz"
-NEWLIBTAR="${TARDIR}/newlib-1.${NEWLIBPOINT}.0.tar.gz"
+BINUTILSTAR="${TARDIR}/binutils-${BINUTILSVERSION}.tar.gz"
+GCCTAR="${TARDIR}/gcc-${GCCVERSION}.tar.gz"
+NEWLIBTAR="${TARDIR}/newlib-${NEWLIBVERSION}.tar.gz"
 GDBTAR="${TARDIR}/gdb-${GDBVERSION}.tar.gz";
 
-GCCTARHASH="6903be0610808454ef42985c214ad834"
+# hashes for stuff
+declare -A BINUTILSHASH;
+BINUTILSHASH=(["2.21"]="f11e10f312a58d82f14bf571dd9ff91c" ["2.22"]="8b3ad7090e3989810943aa19103fdb83")
+GCCTARHASH="ef5117788e27ffef05f8b8adf46f91d8"
 NEWLIBTARHASH="e5488f545c46287d360e68a801d470e8"
 GDBTARHASH="7877875c8af7c7ef7d06d329ac961d3f"
 
-BINUTILSSRC="${SRCDIR}/binutils-2.${BINUTILSPOINT}"
+# src directories
+BINUTILSSRC="${SRCDIR}/binutils-${BINUTILSVERSION}"
 GCCSRC="${SRCDIR}/gcc-${GCCVERSION}"
-NEWLIBSRC="${SRCDIR}/newlib-1.${NEWLIBPOINT}.0";
+NEWLIBSRC="${SRCDIR}/newlib-${NEWLIBVERSION}";
 GDBSRC="${SRCDIR}/gdb-${GDBVERSION}";
 
-
+# build directories
 BINUTILSBUILD="${BUILDDIR}/${TARGET}-binutils"
 GCCBUILD="${BUILDDIR}/${TARGET}-gcc"
 NEWLIBBUILD="${BUILDDIR}/${TARGET}-newlib"
@@ -94,7 +101,7 @@ function stageprep {
 	BUILD=$4;
 	HASH=$5;
 
-	if [ -e ${TAR} -a "$HASH" != "" ]; then
+	if [ -e ${TAR} ]; then
 		CURRENTHASH=`md5sum ${TAR} | cut -d " " -f 1`
 		if [ "${CURRENTHASH}" != "${HASH}" ]; then
 			echo "Hash of current tar.gz doesn't match what is expected, deleting";
@@ -102,13 +109,19 @@ function stageprep {
 		fi;
 	fi
 
+	# if the ar doesnt exist download it
 	if [ ! -e ${TAR} ]; then 
        		wget -O ${TAR} ${URL};
+		# get rid of any extracted version
+		if [ -d ${SRC} ]; then 
+        		rm -rf ${SRC}
+		fi
 	fi
-
-	if [ ! -d ${SRC} ]; then 
-        	cd ${SRCDIR} && tar xzf ${TAR};
-	fi 
+	
+	# if the src dir doesn't exist anymore extract the source.
+	if [ ! -d ${SRC} ]; then
+		cd ${SRCDIR} && tar xzf ${TAR};
+	fi;
 
 	if [ -d ${BUILD} ]; then
         	rm -rf ${BUILD};
@@ -122,8 +135,8 @@ if [ -d $PREFIX ]; then
 fi
 
 
+# debian package detection
 REQUIREDPKGS="build-essential libgmp-dev libmpc-dev libmpfr-dev"
-
 
 for PKG in $REQUIREDPKGS; do
 	dpkg -s  $PKG 2>/dev/null | grep Status > /dev/null
@@ -132,12 +145,13 @@ for PKG in $REQUIREDPKGS; do
 		exit 1;
 	fi
 done
-
+#
 
 GCCCONFOPTS="--target=${TARGET} --enable-languages=c --with-gnu-as --with-gnu-ld --enable-languages=c --disable-libssp --prefix=${PREFIX} --disable-shared --with-newlib=yes ${TARGETOPTS}"
+NEWLIBOPTS="--target=${TARGET} --prefix=${PREFIX} --disable-newlib-supplied-syscalls"
 
 echo "*** BUILDING BINUTILS ***";
-stageprep ${BINUTILSTAR} ${BINUTILSURL} ${BINUTILSSRC} ${BINUTILSBUILD} ""
+stageprep ${BINUTILSTAR} ${BINUTILSURL} ${BINUTILSSRC} ${BINUTILSBUILD} ${BINUTILSHASH[$BINUTILSVERSION]}
 cd ${BINUTILSBUILD}
 ${BINUTILSSRC}/configure --target="${TARGET}" --prefix="${PREFIX}"
 make -j "${NCPUS}"
@@ -158,7 +172,7 @@ echo "*** BUILDING INITIAL NEWLIB ***";
 stageprep $NEWLIBTAR $NEWLIBURL $NEWLIBSRC $NEWLIBBUILD ${NEWLIBTARHASH}
 cd ${NEWLIBBUILD}
 # This might fail.. we shouldn't care.. 
-${NEWLIBSRC}/configure --target="${TARGET}" --prefix="${PREFIX}" --disable-newlib-supplied-syscalls
+${NEWLIBSRC}/configure ${NEWLIBOPTS}
 set +e;
 make -k
 make -k install
@@ -175,7 +189,7 @@ make install
 echo "*** BUILDING FINAL NEWLIB ***"
 stageprep $NEWLIBTAR $NEWLIBURL $NEWLIBSRC $NEWLIBBUILD ${NEWLIBTARHASH}
 cd ${NEWLIBBUILD}
-${NEWLIBSRC}/configure --target="${TARGET}" --prefix="${PREFIX}" --disable-newlib-supplied-syscalls
+${NEWLIBSRC}/configure ${NEWLIBOPTS}
 make
 make install
 
