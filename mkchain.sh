@@ -13,12 +13,13 @@ fi;
 # setup the versions of the tools we want
 if [ "$1" = "m68k-elf" ]; then
 	TARGETOPTS="--with-arch=m68k"
+	BINUTILSVERSION="2.21"
 else
 	TARGETOPTS=""
+	BINUTILSVERSION="2.22"
 fi
 
 TARGET="$1"
-BINUTILSVERSION="2.22"
 NEWLIBVERSION="1.20.0"
 GCCVERSION="4.7.0"
 GDBVERSION="7.4"
