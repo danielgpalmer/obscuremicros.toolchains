@@ -13,13 +13,12 @@ fi;
 # setup the versions of the tools we want
 if [ "$1" = "m68k-elf" ]; then
 	TARGETOPTS="--with-arch=m68k"
-	BINUTILSVERSION="2.21"
 else
 	TARGETOPTS=""
-	BINUTILSVERSION="2.22"
 fi
 
 TARGET="$1"
+BINUTILSVERSION="2.22.52.0.1"
 NEWLIBVERSION="1.20.0"
 GCCVERSION="4.7.0"
 GDBVERSION="7.4"
@@ -32,8 +31,7 @@ BUILDDIR="${ROOTDIR}/build"
 INSTDIR="${ROOTDIR}/inst"
 
 # download urls
-#BINUTILSURL="http://ftp.gnu.org/gnu/binutils/binutils-${BINUTILSVERSION}.tar.gz"
-BINUTILSURL="ftp://aeneas.mit.edu/pub/gnu/binutils/binutils-${BINUTILSVERSION}.tar.gz"
+BINUTILSURL="http://www.kernel.org/pub/linux/devel/binutils/binutils-${BINUTILSVERSION}.tar.gz"
 GCCURL="http://ftp.gnu.org/gnu/gcc/gcc-${GCCVERSION}/gcc-${GCCVERSION}.tar.gz"
 NEWLIBURL="ftp://sources.redhat.com/pub/newlib/newlib-${NEWLIBVERSION}.tar.gz"
 GDBURL="http://ftp.gnu.org/gnu/gdb/gdb-${GDBVERSION}.tar.gz"
@@ -44,8 +42,7 @@ NEWLIBTAR="${TARDIR}/newlib-${NEWLIBVERSION}.tar.gz"
 GDBTAR="${TARDIR}/gdb-${GDBVERSION}.tar.gz";
 
 # hashes for stuff
-declare -A BINUTILSHASH;
-BINUTILSHASH=(["2.21"]="f11e10f312a58d82f14bf571dd9ff91c" ["2.22"]="8b3ad7090e3989810943aa19103fdb83")
+BINUTILSHASH="44dc2d153f2c458f4c3059dd14ab8158"
 GCCTARHASH="ef5117788e27ffef05f8b8adf46f91d8"
 NEWLIBTARHASH="e5488f545c46287d360e68a801d470e8"
 GDBTARHASH="7877875c8af7c7ef7d06d329ac961d3f"
@@ -135,7 +132,7 @@ fi
 
 
 # debian package detection
-REQUIREDPKGS="build-essential libgmp-dev libmpc-dev libmpfr-dev"
+REQUIREDPKGS="build-essential libgmp-dev libmpc-dev libmpfr-dev flex bison"
 
 for PKG in $REQUIREDPKGS; do
 	dpkg -s  $PKG 2>/dev/null | grep Status > /dev/null
@@ -150,7 +147,7 @@ GCCCONFOPTS="--target=${TARGET} --enable-languages=c --with-gnu-as --with-gnu-ld
 NEWLIBOPTS="--target=${TARGET} --prefix=${PREFIX} --disable-newlib-supplied-syscalls"
 
 echo "*** BUILDING BINUTILS ***";
-stageprep ${BINUTILSTAR} ${BINUTILSURL} ${BINUTILSSRC} ${BINUTILSBUILD} ${BINUTILSHASH[$BINUTILSVERSION]}
+stageprep ${BINUTILSTAR} ${BINUTILSURL} ${BINUTILSSRC} ${BINUTILSBUILD} ${BINUTILSHASH}
 cd ${BINUTILSBUILD}
 ${BINUTILSSRC}/configure --target="${TARGET}" --prefix="${PREFIX}"
 make -j "${NCPUS}"
