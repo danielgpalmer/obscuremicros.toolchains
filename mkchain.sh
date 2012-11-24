@@ -18,10 +18,10 @@ else
 fi
 
 TARGET="$1"
-BINUTILSVERSION="2.23.51.0.1"
+BINUTILSVERSION="2.23.51.0.3"
 NEWLIBVERSION="1.20.0"
-GCCVERSION="4.7.1"
-GDBVERSION="7.4"
+GCCVERSION="4.7.2"
+GDBVERSION="7.5"
 #
 
 ROOTDIR=`pwd`
@@ -42,10 +42,10 @@ NEWLIBTAR="${TARDIR}/newlib-${NEWLIBVERSION}.tar.gz"
 GDBTAR="${TARDIR}/gdb-${GDBVERSION}.tar.gz";
 
 # hashes for stuff
-BINUTILSHASH="a2f4a562951c43664817d199ca8a1ec3"
-GCCTARHASH="3d06e24570635c91eed6b114687513a6"
+BINUTILSHASH="582b8b5b1ddde8f336b622877b751c64"
+GCCTARHASH="5199d34506d4fa6528778ddba362d3f4"
 NEWLIBTARHASH="e5488f545c46287d360e68a801d470e8"
-GDBTARHASH="7877875c8af7c7ef7d06d329ac961d3f"
+GDBTARHASH="c9f5ed81008194f8f667f131234f3ef0"
 
 # src directories
 BINUTILSSRC="${SRCDIR}/binutils-${BINUTILSVERSION}"
@@ -105,9 +105,14 @@ function stageprep {
 		fi;
 	fi
 
-	# if the ar doesnt exist download it
+	# if the tar doesn't exist download it
 	if [ ! -e ${TAR} ]; then 
        		wget -O ${TAR} ${URL};
+		DOWNLOADEDHASH=`md5sum ${TAR} | cut -d " " -f 1`
+                if [ "${DOWNLOADEDHASH}" != "${HASH}" ]; then
+                        echo "Hash of downloaded tar.gz doesn't match what is expected, exiting";
+                        exit 1;
+                fi;
 		# get rid of any extracted version
 		if [ -d ${SRC} ]; then 
         		rm -rf ${SRC}
@@ -144,12 +149,15 @@ done
 #
 
 GCCCONFOPTS="--target=${TARGET} --enable-languages=c --with-gnu-as --with-gnu-ld --enable-languages=c --disable-libssp --prefix=${PREFIX} --disable-shared --with-newlib=yes ${TARGETOPTS}"
-NEWLIBOPTS="--target=${TARGET} --prefix=${PREFIX} --disable-newlib-supplied-syscalls"
+NEWLIBOPTS="--target=${TARGET} --prefix=${PREFIX} --disable-newlib-supplied-syscalls --enable-newlib-reent-small"
+BINUTILSOPTS="--target=${TARGET} --prefix=${PREFIX} --enable-gold"
+
+CFLAGSFORTARGET="-flto"
 
 echo "*** BUILDING BINUTILS ***";
 stageprep ${BINUTILSTAR} ${BINUTILSURL} ${BINUTILSSRC} ${BINUTILSBUILD} ${BINUTILSHASH}
 cd ${BINUTILSBUILD}
-${BINUTILSSRC}/configure --target="${TARGET}" --prefix="${PREFIX}"
+${BINUTILSSRC}/configure $BINUTILSOPTS
 make -j "${NCPUS}"
 make install
 
@@ -185,7 +193,7 @@ make install
 echo "*** BUILDING FINAL NEWLIB ***"
 stageprep $NEWLIBTAR $NEWLIBURL $NEWLIBSRC $NEWLIBBUILD ${NEWLIBTARHASH}
 cd ${NEWLIBBUILD}
-${NEWLIBSRC}/configure ${NEWLIBOPTS}
+${NEWLIBSRC}/configure ${NEWLIBOPTS} CFLAGS_FOR_TARGET="${CFLAGSFORTARGET}"
 make
 make install
 
