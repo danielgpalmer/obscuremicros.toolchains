@@ -137,7 +137,7 @@ fi
 
 
 # debian package detection
-REQUIREDPKGS="build-essential libgmp-dev libmpc-dev libmpfr-dev flex bison"
+REQUIREDPKGS="build-essential libgmp-dev libmpc-dev libmpfr-dev flex bison libncurses5-dev"
 
 for PKG in $REQUIREDPKGS; do
 	dpkg -s  $PKG 2>/dev/null | grep Status > /dev/null
