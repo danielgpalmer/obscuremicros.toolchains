@@ -20,8 +20,8 @@ fi
 TARGET="$1"
 BINUTILSVERSION="2.23.52.0.2"
 NEWLIBVERSION="2.0.0"
-GCCVERSION="4.8.0"
-GDBVERSION="7.5.1"
+GCCVERSION="4.8.2"
+GDBVERSION="7.6.1"
 #
 
 ROOTDIR=`pwd`
@@ -43,9 +43,9 @@ GDBTAR="${TARDIR}/gdb-${GDBVERSION}.tar.gz";
 
 # hashes for stuff
 BINUTILSHASH="2f026f2367c1d94d7bd4f6c1d2526e2e"
-GCCTARHASH="f1011d59961a43d3d7c22913815812b3"
+GCCTARHASH="deca88241c1135e2ff9fa5486ab5957b"
 NEWLIBTARHASH="e3e936235e56d6a28afb2a7f98b1a635"
-GDBTARHASH="b1519bf899890d21d4774845a6e602fe"
+GDBTARHASH="d42841167fd061d90fddf9a7212a1f9f"
 
 # src directories
 BINUTILSSRC="${SRCDIR}/binutils-${BINUTILSVERSION}"
@@ -70,10 +70,8 @@ if [ -x /usr/bin/distcc ]; then
 fi
 
 INSTBIN="${PREFIX}/bin"
-
-mkdir -p ${INSTBIN}
-
 PATH="${INSTBIN}:${PATH}"
+
 OS=`uname -s`
 ARCH=`uname -m`
 TOOLCHAINTAR="${ROOTDIR}/toolchain-${TARGET}-${OS}_${ARCH}.tar.gz"
@@ -131,7 +129,19 @@ function stageprep {
 	mkdir ${BUILD}
 }
 
+function stagerecord {
+	RECORD=$PREFIX/manifest/$1
+	if [ ! -e $PREFIX/manifest ]; then
+		mkdir $PREFIX/manifest
+	fi
+	FILES=`find $PREFIX -type f`;
+	for FILE in $FILES; do
+		md5sum $FILE >> $RECORD;
+	done
+}
+
 if [ -d $PREFIX ]; then
+	echo "Deleting existing toolchain";
 	rm -r $PREFIX;
 fi
 
@@ -148,7 +158,17 @@ for PKG in $REQUIREDPKGS; do
 done
 #
 
-GCCCONFOPTS="--target=${TARGET} --enable-languages=c --with-gnu-as --with-gnu-ld --enable-languages=c --disable-libssp --prefix=${PREFIX} --disable-shared --with-newlib=yes ${TARGETOPTS}"
+GCCCONFOPTS="--target=${TARGET} \
+	    --enable-languages=c \
+	    --with-gnu-as --with-gnu-ld \
+	    --enable-languages=c \
+	    --disable-libssp \
+	    --prefix=${PREFIX} \
+	    --disable-shared \
+	    --with-newlib=yes \
+	    --disable-nls \
+	    ${TARGETOPTS}"
+
 NEWLIBOPTS="--target=${TARGET} --prefix=${PREFIX} --disable-newlib-supplied-syscalls --enable-newlib-reent-small"
 BINUTILSOPTS="--target=${TARGET} --prefix=${PREFIX} --enable-gold"
 
@@ -160,7 +180,7 @@ cd ${BINUTILSBUILD}
 ${BINUTILSSRC}/configure $BINUTILSOPTS
 make -j "${NCPUS}"
 make install
-
+stagerecord binutils
 
 echo "*** BUILDING INITIAL GCC***"
 stageprep ${GCCTAR} ${GCCURL} ${GCCSRC} ${GCCBUILD} ${GCCTARHASH}
@@ -171,6 +191,7 @@ set +e;
 make -k -j "${NCPUS}";
 make -k install
 set -e;
+stagerecord initialgcc
 
 echo "*** BUILDING INITIAL NEWLIB ***";
 stageprep $NEWLIBTAR $NEWLIBURL $NEWLIBSRC $NEWLIBBUILD ${NEWLIBTARHASH}
@@ -181,6 +202,7 @@ set +e;
 make -k
 make -k install
 set -e;
+stagerecord initialnewlib
 
 
 echo "*** BUILDING FINAL GCC***"
@@ -189,6 +211,7 @@ cd ${GCCBUILD}
 ${GCCSRC}/configure ${GCCCONFOPTS}
 make -j "${NCPUS}"
 make install
+stagerecord finalgcc
 
 echo "*** BUILDING FINAL NEWLIB ***"
 stageprep $NEWLIBTAR $NEWLIBURL $NEWLIBSRC $NEWLIBBUILD ${NEWLIBTARHASH}
@@ -196,6 +219,7 @@ cd ${NEWLIBBUILD}
 ${NEWLIBSRC}/configure ${NEWLIBOPTS} CFLAGS_FOR_TARGET="${CFLAGSFORTARGET}"
 make
 make install
+stagerecord finalnewlib
 
 echo "*** BUILDING GDB***"
 stageprep $GDBTAR $GDBURL $GDBSRC $GDBBUILD ${GDBTARHASH}
@@ -203,6 +227,7 @@ cd ${GDBBUILD}
 ${GDBSRC}/configure --target="${TARGET}" --prefix="${PREFIX}"
 make -j "${NCPUS}"
 make install
+stagerecord gdb
 
 cd $ROOTDIR
 tar cpzvf $TOOLCHAINTAR inst/${TARGET}
