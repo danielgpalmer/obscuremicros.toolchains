@@ -19,13 +19,14 @@ fi
 
 TARGET="$1"
 BINUTILSVERSION="2.24.51.0.3"
-NEWLIBVERSION="2.0.0"
+NEWLIBVERSION="2.1.0"
 GCCVERSION="4.8.2"
 GDBVERSION="7.7"
 #
 
 ROOTDIR=`pwd`
 SRCDIR="${ROOTDIR}/src"
+PATCHESDIR="${ROOTDIR}/patches"
 TARDIR="${ROOTDIR}/tarballs"
 BUILDDIR="${ROOTDIR}/build"
 INSTDIR="${ROOTDIR}/inst"
@@ -42,9 +43,11 @@ NEWLIBTAR="${TARDIR}/newlib-${NEWLIBVERSION}.tar.gz"
 GDBTAR="${TARDIR}/gdb-${GDBVERSION}.tar.gz";
 
 # hashes for stuff
+#BINUTILSHASH="2f026f2367c1d94d7bd4f6c1d2526e2e"
 BINUTILSHASH="c8492983261af4faa1c5fa8cc0fc2db1"
 GCCTARHASH="deca88241c1135e2ff9fa5486ab5957b"
-NEWLIBTARHASH="e3e936235e56d6a28afb2a7f98b1a635"
+#NEWLIBTARHASH="e3e936235e56d6a28afb2a7f98b1a635"
+NEWLIBTARHASH="c6559d83ecce4728a52f0ce7ec80de97"
 GDBTARHASH="40051ff95b39bd57b14b1809e2c16152"
 
 # src directories
@@ -52,6 +55,13 @@ BINUTILSSRC="${SRCDIR}/binutils-${BINUTILSVERSION}"
 GCCSRC="${SRCDIR}/gcc-${GCCVERSION}"
 NEWLIBSRC="${SRCDIR}/newlib-${NEWLIBVERSION}";
 GDBSRC="${SRCDIR}/gdb-${GDBVERSION}";
+
+# patch directories
+BINUTILSPATCHES="${PATCHESDIR}/binutils"
+GCCPATCHES="${PATCHESDIR}/gcc"
+NEWLIBPATCHES="${PATCHESDIR}/newlib";
+GDBPATCHES="${PATCHESDIR}/gdb";
+
 
 # build directories
 BINUTILSBUILD="${BUILDDIR}/${TARGET}-binutils"
@@ -92,8 +102,9 @@ function stageprep {
 	TAR=$1;
 	URL=$2;
 	SRC=$3;
-	BUILD=$4;
-	HASH=$5;
+	PATCHES=$4;
+	BUILD=$5;
+	HASH=$6;
 
 	if [ -e ${TAR} ]; then
 		CURRENTHASH=`md5sum ${TAR} | cut -d " " -f 1`
@@ -119,7 +130,16 @@ function stageprep {
 	
 	# if the src dir doesn't exist anymore extract the source.
 	if [ ! -d ${SRC} ]; then
-		cd ${SRCDIR} && tar xzf ${TAR};
+		cd ${SRCDIR};
+		tar xzf ${TAR};
+		if [ -d ${PATCHES} ]; then
+			cd ${SRC};
+			echo "Applying patches"
+			for PATCH in `ls ${PATCHES}/*.patch`; do
+				echo "Applying $PATCH";
+				patch -p0 < $PATCH;
+			done;
+		fi;
 	fi;
 
 	if [ -d ${BUILD} ]; then
@@ -175,7 +195,7 @@ BINUTILSOPTS="--target=${TARGET} --prefix=${PREFIX} --enable-gold"
 CFLAGSFORTARGET="-flto"
 
 echo "*** BUILDING BINUTILS ***";
-stageprep ${BINUTILSTAR} ${BINUTILSURL} ${BINUTILSSRC} ${BINUTILSBUILD} ${BINUTILSHASH}
+stageprep ${BINUTILSTAR} ${BINUTILSURL} ${BINUTILSSRC} ${BINUTILSPATCHES} ${BINUTILSBUILD} ${BINUTILSHASH}
 cd ${BINUTILSBUILD}
 ${BINUTILSSRC}/configure $BINUTILSOPTS
 make -j "${NCPUS}"
@@ -183,7 +203,7 @@ make install
 stagerecord binutils
 
 echo "*** BUILDING INITIAL GCC***"
-stageprep ${GCCTAR} ${GCCURL} ${GCCSRC} ${GCCBUILD} ${GCCTARHASH}
+stageprep ${GCCTAR} ${GCCURL} ${GCCSRC} ${GCCPATCHES} ${GCCBUILD} ${GCCTARHASH}
 cd ${GCCBUILD}
 # This might fail.. we shouldn't care.. it should give us enough of a compiler to compile newlib
 ${GCCSRC}/configure ${GCCCONFOPTS}
@@ -194,7 +214,7 @@ set -e;
 stagerecord initialgcc
 
 echo "*** BUILDING INITIAL NEWLIB ***";
-stageprep $NEWLIBTAR $NEWLIBURL $NEWLIBSRC $NEWLIBBUILD ${NEWLIBTARHASH}
+stageprep $NEWLIBTAR $NEWLIBURL $NEWLIBSRC ${NEWLIBPATCHES} $NEWLIBBUILD ${NEWLIBTARHASH}
 cd ${NEWLIBBUILD}
 # This might fail.. we shouldn't care.. 
 ${NEWLIBSRC}/configure ${NEWLIBOPTS}
@@ -206,7 +226,7 @@ stagerecord initialnewlib
 
 
 echo "*** BUILDING FINAL GCC***"
-stageprep ${GCCTAR} ${GCCURL} ${GCCSRC} ${GCCBUILD} ${GCCTARHASH}
+stageprep ${GCCTAR} ${GCCURL} ${GCCSRC} ${GCCPATCHES} ${GCCBUILD} ${GCCTARHASH}
 cd ${GCCBUILD}
 ${GCCSRC}/configure ${GCCCONFOPTS}
 make -j "${NCPUS}"
@@ -214,7 +234,7 @@ make install
 stagerecord finalgcc
 
 echo "*** BUILDING FINAL NEWLIB ***"
-stageprep $NEWLIBTAR $NEWLIBURL $NEWLIBSRC $NEWLIBBUILD ${NEWLIBTARHASH}
+stageprep $NEWLIBTAR $NEWLIBURL $NEWLIBSRC ${NEWLIBPATCHES} $NEWLIBBUILD ${NEWLIBTARHASH}
 cd ${NEWLIBBUILD}
 ${NEWLIBSRC}/configure ${NEWLIBOPTS} CFLAGS_FOR_TARGET="${CFLAGSFORTARGET}"
 make
@@ -222,7 +242,7 @@ make install
 stagerecord finalnewlib
 
 echo "*** BUILDING GDB***"
-stageprep $GDBTAR $GDBURL $GDBSRC $GDBBUILD ${GDBTARHASH}
+stageprep $GDBTAR $GDBURL $GDBSRC ${GDBPATCHES} $GDBBUILD ${GDBTARHASH}
 cd ${GDBBUILD}
 ${GDBSRC}/configure --target="${TARGET}" --prefix="${PREFIX}"
 make -j "${NCPUS}"
