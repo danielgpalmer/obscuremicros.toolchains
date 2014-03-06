@@ -1,0 +1,8 @@
+--- gcc/config/m68k/m68k-devices.def.orig	2014-03-06 19:39:39.004892244 +0900
++++ gcc/config/m68k/m68k-devices.def	2014-03-06 19:39:58.992756604 +0900
+@@ -192,4 +192,4 @@
+ M68K_DEVICE ("548x",  mcf548x,  "5485",  "5475",  cfv4e,    isa_b,     FL_CF_USP | FL_CF_EMAC | FL_CF_FPU | FL_MMU)
+ 
+ /* Fido processor.  */
+-M68K_DEVICE ("fidoa", fidoa,    "cpu32", "fidoa", cpu32,    isa_cpu32, FL_FIDOA | FL_MMU)
++/*M68K_DEVICE ("fidoa", fidoa,    "cpu32", "fidoa", cpu32,    isa_cpu32, FL_FIDOA | FL_MMU)*/
