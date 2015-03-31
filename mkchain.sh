@@ -18,10 +18,10 @@ else
 fi
 
 TARGET="$1"
-BINUTILSVERSION="2.24.51.0.3"
-NEWLIBVERSION="2.1.0"
-GCCVERSION="4.8.2"
-GDBVERSION="7.7"
+BINUTILSVERSION="2.25"
+NEWLIBVERSION="2.2.0.20150323"
+GCCVERSION="4.9.2"
+GDBVERSION="7.9"
 #
 
 ROOTDIR=`pwd`
@@ -32,9 +32,9 @@ BUILDDIR="${ROOTDIR}/build"
 INSTDIR="${ROOTDIR}/inst"
 
 # download urls
-BINUTILSURL="http://www.kernel.org/pub/linux/devel/binutils/binutils-${BINUTILSVERSION}.tar.gz"
+BINUTILSURL="http://ftp.gnu.org/gnu/binutils/binutils-${BINUTILSVERSION}.tar.gz"
 GCCURL="http://ftp.gnu.org/gnu/gcc/gcc-${GCCVERSION}/gcc-${GCCVERSION}.tar.gz"
-NEWLIBURL="ftp://sources.redhat.com/pub/newlib/newlib-${NEWLIBVERSION}.tar.gz"
+NEWLIBURL="ftp://sourceware.org/pub/newlib/newlib-${NEWLIBVERSION}.tar.gz"
 GDBURL="http://ftp.gnu.org/gnu/gdb/gdb-${GDBVERSION}.tar.gz"
 
 BINUTILSTAR="${TARDIR}/binutils-${BINUTILSVERSION}.tar.gz"
@@ -43,12 +43,10 @@ NEWLIBTAR="${TARDIR}/newlib-${NEWLIBVERSION}.tar.gz"
 GDBTAR="${TARDIR}/gdb-${GDBVERSION}.tar.gz";
 
 # hashes for stuff
-#BINUTILSHASH="2f026f2367c1d94d7bd4f6c1d2526e2e"
-BINUTILSHASH="c8492983261af4faa1c5fa8cc0fc2db1"
-GCCTARHASH="deca88241c1135e2ff9fa5486ab5957b"
-#NEWLIBTARHASH="e3e936235e56d6a28afb2a7f98b1a635"
-NEWLIBTARHASH="c6559d83ecce4728a52f0ce7ec80de97"
-GDBTARHASH="40051ff95b39bd57b14b1809e2c16152"
+BINUTILSHASH="ab6719fd7434caf07433ec834db8ad4f"
+GCCTARHASH="76f464e0511c26c93425a9dcdc9134cf"
+NEWLIBTARHASH="a5107ff59e53a5731bdd0e245cbd1ad8"
+GDBTARHASH="8f8ced422fe462a00e0135a643544f17"
 
 # src directories
 BINUTILSSRC="${SRCDIR}/binutils-${BINUTILSVERSION}"
@@ -189,10 +187,10 @@ GCCCONFOPTS="--target=${TARGET} \
 	    --disable-nls \
 	    ${TARGETOPTS}"
 
-NEWLIBOPTS="--target=${TARGET} --prefix=${PREFIX} --disable-newlib-supplied-syscalls --enable-newlib-reent-small"
+NEWLIBOPTS="--target=${TARGET} --prefix=${PREFIX} --disable-newlib-supplied-syscalls --enable-newlib-reent-small --enable-lto"
 BINUTILSOPTS="--target=${TARGET} --prefix=${PREFIX} --enable-gold"
 
-CFLAGSFORTARGET="-flto"
+CFLAGSFORTARGET="-ggdb"
 
 echo "*** BUILDING BINUTILS ***";
 stageprep ${BINUTILSTAR} ${BINUTILSURL} ${BINUTILSSRC} ${BINUTILSPATCHES} ${BINUTILSBUILD} ${BINUTILSHASH}
